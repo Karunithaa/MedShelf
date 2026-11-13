@@ -1,3 +1,4 @@
+// Lavender / indigo theme from the selected MedShelf mockup.
 export const C = {
   primary: '#5747B7', dark: '#29215D', mint: '#F0EBFF', background: '#FAF8FF',
   card: '#FFFFFF', text: '#29215D', muted: '#797391', line: '#E7E0F6',
