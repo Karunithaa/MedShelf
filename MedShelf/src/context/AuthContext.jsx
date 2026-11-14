@@ -1,11 +1,14 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { initializeDb, findUser, createUser, getUser } from '../database/db';
+import {listProfiles} from '../database/db';
+import {requestNotificationPermission,refreshNotifications,cancelUserNotifications} from '../utils/notifications';
 import { hashPassword, checkPassword } from '../utils/password';
 const SESSION_KEY = 'medshelf_user_id';
 const Context = createContext(null);
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [profile,setProfile]=useState(null);
   const [ready, setReady] = useState(false);
   useEffect(() => {
     (async () => {
@@ -14,7 +17,7 @@ export function AuthProvider({ children }) {
         const id = await SecureStore.getItemAsync(SESSION_KEY);
         if (id && /^\d+$/.test(id)) {
           const existing = await getUser(Number(id));
-          if (existing) setUser(existing);
+          if (existing) { setUser(existing); const profiles=await listProfiles(existing.id);setProfile(profiles[0]||null); }
           else await SecureStore.deleteItemAsync(SESSION_KEY);
         }
       } catch (err) { console.warn('Database startup problem:', err); }
@@ -39,11 +42,14 @@ export function AuthProvider({ children }) {
     if (!account || !(await checkPassword(password, account.password_hash))) throw new Error('Invalid username or password.');
     await SecureStore.setItemAsync(SESSION_KEY, String(account.id));
     setUser({id:account.id,username:account.username});
+    const profiles=await listProfiles(account.id);setProfile(profiles[0]||null);
   }
   async function logout() {
     await SecureStore.deleteItemAsync(SESSION_KEY);
-    setUser(null);
+    await cancelUserNotifications(user.id).catch(console.warn);
+    setProfile(null);setUser(null);
   }
-  return <Context.Provider value={{user,ready,register,login,logout}}>{children}</Context.Provider>;
+  useEffect(()=>{if(!user)return;requestNotificationPermission().then(ok=>ok&&refreshNotifications(user.id)).catch(console.warn);},[user?.id]);
+  return <Context.Provider value={{user,profile,setProfile,ready,register,login,logout}}>{children}</Context.Provider>;
 }
 export const useAuth = () => useContext(Context);
