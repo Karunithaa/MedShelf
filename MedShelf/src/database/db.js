@@ -1,6 +1,8 @@
 import * as SQLite from 'expo-sqlite';
 import { getSampleMedicines } from '../data/sampleMedicines';
 
+// Register this username to create a dedicated offline ICA demonstration account.
+// All other newly registered users start with an empty medicine inventory.
 export const DEMO_USERNAME = 'medshelf_demo';
 
 let databasePromise;

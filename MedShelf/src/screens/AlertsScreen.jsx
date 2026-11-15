@@ -7,8 +7,8 @@ import {useAuth} from '../context/AuthContext';
 import {listMedicines,getPreferences} from '../database/db';
 import {daysUntil,expiryStatus,stockIsLow} from '../utils/medicine';
 export default function AlertsScreen({navigation}){
- const {user}=useAuth(),[items,setItems]=useState([]),[warning,setWarning]=useState(30),[filter,setFilter]=useState('All Alerts');
- useFocusEffect(useCallback(()=>{let active=true;(async()=>{try{const [m,p]=await Promise.all([listMedicines(user.id),getPreferences(user.id)]);if(active){setItems(m);setWarning(p.warning_days);}}catch(e){console.warn(e);}})();return()=>{active=false;};},[user.id]));
+ const {user,profile}=useAuth(),[items,setItems]=useState([]),[warning,setWarning]=useState(30),[filter,setFilter]=useState('All Alerts');
+ useFocusEffect(useCallback(()=>{let active=true;(async()=>{try{const [m,p]=await Promise.all([listMedicines(user.id,profile?.id),getPreferences(user.id)]);if(active){setItems(m);setWarning(p.warning_days);}}catch(e){console.warn(e);}})();return()=>{active=false;};},[user.id,profile?.id]));
  const expired=items.filter(m=>expiryStatus(m.expiry_date,warning)==='Expired');
  const soon=items.filter(m=>['Expiring Today','Expiring Soon'].includes(expiryStatus(m.expiry_date,warning)));
  const low=items.filter(stockIsLow);

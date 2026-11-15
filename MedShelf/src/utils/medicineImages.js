@@ -13,6 +13,7 @@ export async function persistMedicineImage(uri) {
   return destination.uri;
 }
 
+// Never delete arbitrary file paths: only files copied into MedShelf's own folder.
 export async function removeMedicineImage(uri) {
   if (!uri || !uri.startsWith(imagesDir.uri + '/')) return;
   try {
